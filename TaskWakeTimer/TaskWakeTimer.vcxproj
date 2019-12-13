@@ -22,6 +22,10 @@
     <ClCompile Include="Source\CTaskTimerService.cpp" />
     <ClCompile Include="Source\main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\CTaskTimerService.h" />
+    <ClInclude Include="Source\ITaskTimerService.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{966F7111-346A-4E7A-9238-957F7538B21A}</ProjectGuid>
