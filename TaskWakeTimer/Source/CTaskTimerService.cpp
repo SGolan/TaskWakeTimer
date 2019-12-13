@@ -1,13 +1,11 @@
-#include <iostream> 
 #include <iterator> 
-#include <thread>
 #include "CTaskTimerService.h"
 
 using namespace std;
 
-CTaskTimerService* CTaskTimerService::m_pCTaskTimerService = NULL;
+ITaskTimerService* CTaskTimerService::m_pCTaskTimerService = NULL;
 
-CTaskTimerService* CTaskTimerService::GetInstance()
+ITaskTimerService* CTaskTimerService::GetInstance()
 {
 	// CTaskTimerService is a singleton
 	if (m_pCTaskTimerService != NULL)
@@ -21,7 +19,7 @@ CTaskTimerService* CTaskTimerService::GetInstance()
 	}
 }
 
-CTaskTimerService::CTaskTimerService() : std::thread([this] { this->ThreadFunction(); })
+CTaskTimerService::CTaskTimerService() : m_thread([this] { this->ThreadFunction(); })
 {
 	m_CurrentTimeSec = 0;
 }
@@ -37,12 +35,18 @@ void CTaskTimerService::ThreadFunction()
 		// update current time
 		m_CurrentTimeSec++;
 		
-		// scan list and signal all threads having their sleep time expired
-		for (list<CTimerItem*>::iterator iter = m_ListCTimerItem.begin(); iter != m_ListCTimerItem.end(); ++iter)
+		// scan the list, signal threads having expired sleep time and remove their entries
+		list<CTimerItem*>::iterator iter = m_ListCTimerItem.begin();
+		while( iter != m_ListCTimerItem.end() )
 		{
-			if (iter->m_TimeToAwakeSec <= m_CurrentTimeSec)
+			if ((*iter)->m_TimeToAwakeSec <= m_CurrentTimeSec)
 			{
-				iter->m_CSemaphore.Signal();
+				(*iter)->m_CSemaphore.Signal();
+				iter = m_ListCTimerItem.erase(iter);
+			}
+			else
+			{
+				++iter;
 			}
 		}
 	}
@@ -63,5 +67,5 @@ void CTaskTimerService::Sleep(uint32_t a_TimeToSleepSec)
 	m_ListCTimerItemMutex.unlock();
 	
 	// block calling thread till wakeup signal
-	pCTimerItem->m_CSemaphore.wait();
+	pCTimerItem->m_CSemaphore.Wait();
 }
