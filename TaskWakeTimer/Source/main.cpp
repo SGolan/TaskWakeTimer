@@ -2,6 +2,7 @@
 #include <ctime>
 #include <windows.h>
 #include "CTaskTimerService.h"
+#include "CThreadSafePrintf.h"
 
 using namespace std;
 
@@ -24,19 +25,19 @@ public:
 
 	void Join() { m_thread.join();  }
 
-	static std::mutex	m_coutMutex;
-
 private:
 
 	void PrintTime(uint32_t a_ThreadIndex, const char* a_strState)
 	{
-		m_coutMutex.lock();
-		cout << "t = " << chrono::duration_cast<std::chrono::milliseconds>(chrono::system_clock::now() - start).count() << "[ms]: thread # " << a_ThreadIndex << a_strState << endl;
-		m_coutMutex.unlock();
+		std::stringstream cstream;
+		auto time_from_start = chrono::duration_cast<std::chrono::milliseconds>(chrono::system_clock::now() - start).count();
+		cstream << "t = " << time_from_start << "[ms]: thread #" << a_ThreadIndex << a_strState << endl;
+		CThreadSafePrintf::Print(&cstream);
 	}
 
 	void ThreadFunction()
 	{
+		PrintTime(m_ThreadIndex, " launched");
 		// be idle for m_TimeBeforeSleep seconds
 		Sleep(m_TimeBeforeSleep*1000);
 		// wake up and "request" CTaskTimerServer to wake this thread again after m_TimeToSleep 
@@ -52,14 +53,12 @@ private:
 	std::thread			m_thread;
 };
 
-std::mutex	CTaskTimerClientThread::m_coutMutex;
-
 
 int main()
 {
 	start = std::chrono::system_clock::now();
 
-	cout << endl << "invoke timer-servive thread ..." << endl;
+	cout << endl << "t = 0[ms] launch timer-service thread ..." << endl << endl;
 	CTaskTimerService::GetInstance();
 
 	// invoke timer-client #0: goes to sleep @ t=2, requests wakeup after 6sec i.e. @ t=8

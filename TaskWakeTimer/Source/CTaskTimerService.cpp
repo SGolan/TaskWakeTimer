@@ -31,13 +31,30 @@ void CTaskTimerService::ThreadFunction()
 	{
 			
 		// scan the list, signal threads having expired sleep time and remove their entries
-		list<CTimerItem*>::iterator iter = m_ListCTimerItem.begin();
-		while( iter != m_ListCTimerItem.end() )
+		list<CTimerItem*>::iterator iter = m_ListpCTimerItemWaitingThreads.begin();
+		while( iter != m_ListpCTimerItemWaitingThreads.end() )
 		{
 			if ((*iter)->m_TimeToAwakeSec <= m_CurrentTimeSec)
 			{
+				// signal waiting thread to awake
 				(*iter)->m_CSemaphore.Signal();
-				iter = m_ListCTimerItem.erase(iter);
+				// move its CTimerItem from to-be-awaken-list to monitor-thread-to-awake list
+				m_ListpCTimerItemAwakenThreads.push_back(*iter);
+				iter = m_ListpCTimerItemWaitingThreads.erase(iter);
+			}
+			else
+			{
+				++iter;
+			}
+		}
+
+		// delete CTimerItem of threads signaled they are awake, from monitor-thread-to-awake list
+		iter = m_ListpCTimerItemAwakenThreads.begin();
+		while (iter != m_ListpCTimerItemAwakenThreads.end())
+		{
+			if ((*iter)->m_WaitingThreadAwaken)
+			{
+				iter = m_ListpCTimerItemAwakenThreads.erase(iter);
 			}
 			else
 			{
@@ -63,9 +80,12 @@ void CTaskTimerService::Sleep(uint32_t a_TimeToSleepSec)
 	
 	// insert item to waiting threads list
 	m_ListCTimerItemMutex.lock();
-	m_ListCTimerItem.push_back(pCTimerItem);
+	m_ListpCTimerItemWaitingThreads.push_back(pCTimerItem);
 	m_ListCTimerItemMutex.unlock();
 	
-	// block calling thread till wakeup signal
+	// calling thread blocks till wakeup signal
 	pCTimerItem->m_CSemaphore.Wait();
+	
+	// calling thread signals it's awake
+	pCTimerItem->m_WaitingThreadAwaken = true;
 }

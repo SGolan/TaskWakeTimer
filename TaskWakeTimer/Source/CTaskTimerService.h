@@ -28,9 +28,10 @@ class CTaskTimerService : public ITaskTimerService
 	class CTimerItem
 	{
 	public:
-		CTimerItem(uint32_t a_TimeToWakeSec) : m_TimeToAwakeSec(a_TimeToWakeSec) {};
+		CTimerItem(uint32_t a_TimeToWakeSec) : m_WaitingThreadAwaken(false), m_TimeToAwakeSec(a_TimeToWakeSec) {};
 		uint32_t	m_TimeToAwakeSec;
 		CSemaphore	m_CSemaphore;
+		bool        m_WaitingThreadAwaken;
 	};
 
 public:
@@ -43,11 +44,12 @@ public:
 private:
 	CTaskTimerService();
 	CTaskTimerService(const CTaskTimerService &)			 {};
-	CTaskTimerService operator = (const CTaskTimerService &) {};
+	CTaskTimerService& operator = (const CTaskTimerService &) {};
 	void	ThreadFunction();
 
 	uint32_t					m_CurrentTimeSec;
-	std::list<CTimerItem *>		m_ListCTimerItem;
+	std::list<CTimerItem *>		m_ListpCTimerItemWaitingThreads;
+	std::list<CTimerItem *>		m_ListpCTimerItemAwakenThreads;
 	std::mutex					m_ListCTimerItemMutex;
 	// Notice: order is important, m_thread should be last to make it initialized/launched
 	// after all other members were initialized

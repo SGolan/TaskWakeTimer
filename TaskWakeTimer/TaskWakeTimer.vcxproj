@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\CTaskTimerService.h" />
+    <ClInclude Include="Source\CThreadSafePrintf.h" />
     <ClInclude Include="Source\ITaskTimerService.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
