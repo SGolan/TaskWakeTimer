@@ -1,6 +1,6 @@
 #include <iostream>
-#include <ctime>
 #include <windows.h>
+#include <chrono>
 #include "CTaskTimerService.h"
 #include "CThreadSafePrintf.h"
 #include "CTimeFromStart.h"
@@ -33,7 +33,7 @@ private:
 		std::stringstream cstream;
 		uint32_t time_from_start = CTimeFromStart::GetInstance()->GetTime();
 		cstream << "t = " << time_from_start << "[ms]: thread #" << a_ThreadIndex << a_strState << endl;
-		CThreadSafePrintf::Print(&cstream);
+		CThreadSafePrintf::GetInstance()->Print(&cstream);
 	}
 
 	void ThreadFunction()
@@ -72,6 +72,10 @@ int main()
 	thread0.Join();
 	thread1.Join();
 	thread2.Join();
+
+	this_thread::sleep_for(chrono::seconds(2));
+	cout << endl << "Notice: at this point, both lists handeled by CTaskTimerService (waiting-list \r\n\
+                     \rand awaken-list) should be both empty !" << endl;
 
 	cout << endl << "Press ENTER to exit..." << endl;
 	getchar();

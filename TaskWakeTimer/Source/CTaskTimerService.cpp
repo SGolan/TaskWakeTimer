@@ -124,6 +124,6 @@ void CTaskTimerService::PrintStatus()
 	}
 	cstream << endl;
 
-	CThreadSafePrintf::Print(&cstream);
+	CThreadSafePrintf::GetInstance()->Print(&cstream);
 
 }
