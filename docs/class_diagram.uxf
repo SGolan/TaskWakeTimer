@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>850</x>
+      <y>260</y>
+      <w>360</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;singleton&gt;&gt;
+CTaskTimerService
+--
+- m_ListpCTimerItemWaitingThreads : std::list
+- m_ListpCTimerItemAwakenThreads: std::list
+- m_thread : std::thread 
+--
++ GetInstance()
++ Sleep()
+- ThreadFunction()
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>880</x>
+      <y>90</y>
+      <w>210</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+ITaskTimerService
+--
+
+--
++ Sleep() = 0
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>970</x>
+      <y>170</y>
+      <w>30</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1250</x>
+      <y>260</y>
+      <w>270</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>CTaskTimerClient
+--
+- m_thread : std::thread 
+--
++ CTaskTimerClient(TimeToSleep, ...)
+- ThreadFunction()
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>420</x>
+      <y>270</y>
+      <w>270</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>CTimerItem
+--
++ m_TimeToAwakeSec 	: uint32_t
++ m_CSemaphore : std::mutex
++ m_WaitingThreadAwaken : bool
+--
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>680</x>
+      <y>300</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>170.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>750</x>
+      <y>320</y>
+      <w>120</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>100.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>750</x>
+      <y>320</y>
+      <w>50</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>m1=0..n</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>420</x>
+      <y>390</y>
+      <w>270</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>CTimerItem
+--
++ m_TimeToAwakeSec 	: uint32_t
++ m_CSemaphore : std::mutex
++ m_WaitingThreadAwaken : bool
+--
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>680</x>
+      <y>420</y>
+      <w>100</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>80.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>900</x>
+      <y>460</y>
+      <w>270</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;singleton&gt;&gt;
+CThreadSafePrintf
+--
+- m_Mutex : std::thread 
+--
++ GetInstance()
++ Print(std::stringstream)
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1260</x>
+      <y>460</y>
+      <w>270</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;singleton&gt;&gt;
+CTimeFromStart
+--
+- m_StartTime : std::chrono::time_point 
+--
++ GetInstance()
++ GetTime()
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
