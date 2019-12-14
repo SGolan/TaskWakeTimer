@@ -1,4 +1,5 @@
-
+// File: ITaskTimerService.h
+#pragma once
 
 class ITaskTimerService
 {

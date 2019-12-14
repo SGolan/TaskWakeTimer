@@ -1,4 +1,5 @@
-
+// File: CTimeFromStart.h
+#pragma once
 #include <chrono>
 
 class CTimeFromStart

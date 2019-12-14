@@ -1,3 +1,5 @@
+// File: CThreadSafePrintf.h
+#pragma once
 #include <iostream>
 #include <sstream>
 #include <string>  
