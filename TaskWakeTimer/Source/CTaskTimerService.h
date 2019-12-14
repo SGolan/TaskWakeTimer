@@ -51,6 +51,7 @@ private:
 	CTaskTimerService(const CTaskTimerService &)			 {};
 	CTaskTimerService& operator = (const CTaskTimerService &) {};
 	void	ThreadFunction();
+	void	AddToSortedWaitingList(CTimerItem* a_pCTimerItem);
 	void    PrintStatus();
 
 	uint32_t					m_CurrentTimeSec;

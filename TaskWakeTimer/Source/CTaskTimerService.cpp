@@ -33,31 +33,28 @@ void CTaskTimerService::ThreadFunction()
 
 	for (; ; )
 	{
-			
-		// scan the list, signal threads having expired sleep time and remove their entries
-		list<CTimerItem*>::iterator iter = m_ListpCTimerItemWaitingThreads.begin();
-		while( iter != m_ListpCTimerItemWaitingThreads.end() )
+		list<CTimerItem*>::iterator iter;
+
+		// scan sorted-list (from early wake-time to late) : signal threads having expired sleep time and remove their entries
+		for(iter = m_ListpCTimerItemWaitingThreads.begin(); iter != m_ListpCTimerItemWaitingThreads.end() ; )
 		{
-			if ((*iter)->m_TimeToAwakeSec <= m_CurrentTimeSec)
+			if (m_CurrentTimeSec < (*iter)->m_TimeToAwakeSec)
 			{
-				// signal waiting thread to awake
-				(*iter)->m_CSemaphore.Signal();
-				// move its CTimerItem from to-be-awaken-list to monitor-thread-to-awake list
-				// TODO: this list should be further managed by timeout and size-limit in order
-	            // handle stray threads (not signaled they were awaked) !!!
-				m_ListpCTimerItemAwakenThreads.push_back(*iter);
-				iter = m_ListpCTimerItemWaitingThreads.erase(iter);
-				PrintStatus();
+				break;
 			}
-			else
-			{
-				++iter;
-			}
+			
+			// signal waiting thread to awake
+			(*iter)->m_CSemaphore.Signal();
+			// move its CTimerItem from to-be-awaken-list to monitor-thread-to-awake list
+			// TODO: this list should be further managed by timeout and size-limit in order
+			// handle stray threads (not signaled they were awaked) !!!
+			m_ListpCTimerItemAwakenThreads.push_back(*iter);
+			iter = m_ListpCTimerItemWaitingThreads.erase(iter);
+			PrintStatus();
 		}
 
-		// delete CTimerItem of threads signaled they are awake, from monitor-thread-to-awake list
-		iter = m_ListpCTimerItemAwakenThreads.begin();
-		while (iter != m_ListpCTimerItemAwakenThreads.end())
+		// remove CTimerItem of awaken-threads from monitor-thread-awaken list
+		for (iter = m_ListpCTimerItemAwakenThreads.begin(); iter != m_ListpCTimerItemAwakenThreads.end() ;  )
 		{
 			if ((*iter)->m_WaitingThreadAwaken)
 			{
@@ -66,10 +63,9 @@ void CTaskTimerService::ThreadFunction()
 			}
 			else
 			{
-				++iter;
+				++iter ;
 			}
 		}
-
 
 		// sleep 1sec (simulates IRQ every 1sec)
 		this_thread::sleep_for(chrono::seconds(1));
@@ -80,17 +76,46 @@ void CTaskTimerService::ThreadFunction()
 }
 
 
+void CTaskTimerService::AddToSortedWaitingList(CTimerItem* a_pCTimerItem)
+{
+	// insert item to waiting threads ordered-list
+	m_ListCTimerItemMutex.lock();
+	if (m_ListpCTimerItemWaitingThreads.empty())
+	{
+		// case list is empty 
+		m_ListpCTimerItemWaitingThreads.push_back(a_pCTimerItem);
+	}
+	else
+	{
+		list<CTimerItem*>::iterator iter;
+		// list not empty : look for thread with later wakeup-time
+		for (iter = m_ListpCTimerItemWaitingThreads.begin(); iter != m_ListpCTimerItemWaitingThreads.end(); ++iter)
+		{
+			if ((*iter)->m_TimeToAwakeSec > a_pCTimerItem->m_TimeToAwakeSec)
+			{
+				// if found, insert just before 
+				m_ListpCTimerItemWaitingThreads.insert(iter, a_pCTimerItem);
+				break;
+			}
+		}
+		if (iter == m_ListpCTimerItemWaitingThreads.end())
+		{
+			// case thread with later wakeup-time not found, insert at end
+			m_ListpCTimerItemWaitingThreads.push_back(a_pCTimerItem);
+		}
+	}
+	m_ListCTimerItemMutex.unlock();
+}
+
+
 void CTaskTimerService::Sleep(uint32_t a_ThreadIndex, uint32_t a_TimeToSleepSec)
 {
 	// calculate time to wake
 	uint32_t TimeSToWakeSec = m_CurrentTimeSec + a_TimeToSleepSec;
 	// create timer list-item
-	CTimerItem *pCTimerItem    = new CTimerItem(a_ThreadIndex, TimeSToWakeSec);
-	
-	// insert item to waiting threads list
-	m_ListCTimerItemMutex.lock();
-	m_ListpCTimerItemWaitingThreads.push_back(pCTimerItem);
-	m_ListCTimerItemMutex.unlock();
+	CTimerItem *pCTimerItem = new CTimerItem(a_ThreadIndex, TimeSToWakeSec);
+
+	AddToSortedWaitingList(pCTimerItem);
 
 	PrintStatus();
 	
