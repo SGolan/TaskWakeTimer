@@ -29,12 +29,7 @@ void CTaskTimerService::ThreadFunction()
 
 	for (; ; )
 	{
-		// sleep 1sec (simulates IRQ every 1sec)
-		this_thread::sleep_for(chrono::seconds(1));
-		
-		// update current time
-		m_CurrentTimeSec++;
-		
+			
 		// scan the list, signal threads having expired sleep time and remove their entries
 		list<CTimerItem*>::iterator iter = m_ListCTimerItem.begin();
 		while( iter != m_ListCTimerItem.end() )
@@ -49,6 +44,11 @@ void CTaskTimerService::ThreadFunction()
 				++iter;
 			}
 		}
+
+		// sleep 1sec (simulates IRQ every 1sec)
+		this_thread::sleep_for(chrono::seconds(1));
+		// update current time
+		m_CurrentTimeSec++;
 	}
 
 }

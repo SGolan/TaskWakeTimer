@@ -31,7 +31,7 @@ private:
 	void PrintTime(uint32_t a_ThreadIndex, const char* a_strState)
 	{
 		m_coutMutex.lock();
-		cout << "t = " << chrono::duration_cast<std::chrono::seconds>(chrono::system_clock::now() - start).count() << ": thread # " << a_ThreadIndex << a_strState << endl;
+		cout << "t = " << chrono::duration_cast<std::chrono::milliseconds>(chrono::system_clock::now() - start).count() << "[ms]: thread # " << a_ThreadIndex << a_strState << endl;
 		m_coutMutex.unlock();
 	}
 
@@ -47,6 +47,8 @@ private:
 	uint16_t			m_ThreadIndex;
 	uint32_t			m_TimeBeforeSleep;
 	uint32_t			m_TimeToSleep;
+	// Notice: order is important, m_thread should be last to make it initialized/launched
+	// after all other members were initialized
 	std::thread			m_thread;
 };
 
@@ -57,14 +59,16 @@ int main()
 {
 	start = std::chrono::system_clock::now();
 
-	// thread #0: goes to sleep @ t=2 and asks to be awaken after 6sec, i.e. @ t=8
+	cout << endl << "invoke timer-servive thread ..." << endl;
+	CTaskTimerService::GetInstance();
+
+	// invoke timer-client #0: goes to sleep @ t=2, requests wakeup after 6sec i.e. @ t=8
 	CTaskTimerClientThread	thread0(0, 2, 6);
-	// thread #1: goes to sleep @ t=3 and asks to be awaken after 1sec, i.e. @ t=4
+	// invoke timer-client #1: goes to sleep @ t=3, requests wakeup after 1sec i.e. @ t=4
 	CTaskTimerClientThread	thread1(1, 3, 1);
-	// thread #2: goes to sleep @ t=1 and asks to be awaken after 2sec, i.e. @ t=3
+	// invoke timer-client #2: goes to sleep @ t=1, requests wakeup after 2sec i.e. @ t=3
 	CTaskTimerClientThread	thread2(2, 1, 2);
-
-
+	
 	thread0.Join();
 	thread1.Join();
 	thread2.Join();

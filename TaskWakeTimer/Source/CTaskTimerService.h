@@ -17,7 +17,6 @@ class CTaskTimerService : public ITaskTimerService
 		void Signal()
 		{
 			m_ConditionVariable.notify_one();
-
 		};
 		void Wait()
 		{
@@ -47,9 +46,11 @@ private:
 	CTaskTimerService operator = (const CTaskTimerService &) {};
 	void	ThreadFunction();
 
-	std::thread					m_thread;
 	uint32_t					m_CurrentTimeSec;
 	std::list<CTimerItem *>		m_ListCTimerItem;
 	std::mutex					m_ListCTimerItemMutex;
+	// Notice: order is important, m_thread should be last to make it initialized/launched
+	// after all other members were initialized
+	std::thread					m_thread;
 
 };
