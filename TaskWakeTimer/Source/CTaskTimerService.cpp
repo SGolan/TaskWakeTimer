@@ -42,6 +42,8 @@ void CTaskTimerService::ThreadFunction()
 				// signal waiting thread to awake
 				(*iter)->m_CSemaphore.Signal();
 				// move its CTimerItem from to-be-awaken-list to monitor-thread-to-awake list
+				// TODO: this list should be further managed by timeout and size-limit in order
+	            // handle stray threads (not signaled they were awaked) !!!
 				m_ListpCTimerItemAwakenThreads.push_back(*iter);
 				iter = m_ListpCTimerItemWaitingThreads.erase(iter);
 				PrintStatus();
@@ -102,11 +104,11 @@ void CTaskTimerService::Sleep(uint32_t a_ThreadIndex, uint32_t a_TimeToSleepSec)
 void CTaskTimerService::PrintStatus()
 {
 
-	uint32_t time_from_start = CTimeFromStart::GetTime();
+	uint32_t time_from_start = CTimeFromStart::GetInstance()->GetTime();
 	std::stringstream cstream;
 
 	// print waiting-threads list
-	cstream << "t = " << time_from_start << "[ms] waiting list: /" ;
+	cstream << "t = " << time_from_start << "[ms]: waiting list: /" ;
 	list<CTimerItem*>::iterator iter = m_ListpCTimerItemWaitingThreads.begin();
 	for(iter = m_ListpCTimerItemWaitingThreads.begin(); iter != m_ListpCTimerItemWaitingThreads.end(); ++iter)
 	{

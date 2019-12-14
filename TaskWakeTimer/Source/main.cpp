@@ -31,7 +31,7 @@ private:
 	void PrintStatus(uint32_t a_ThreadIndex, const char* a_strState)
 	{
 		std::stringstream cstream;
-		uint32_t time_from_start = CTimeFromStart::GetTime();
+		uint32_t time_from_start = CTimeFromStart::GetInstance()->GetTime();
 		cstream << "t = " << time_from_start << "[ms]: thread #" << a_ThreadIndex << a_strState << endl;
 		CThreadSafePrintf::Print(&cstream);
 	}
@@ -61,7 +61,6 @@ int main()
 
 	cout << endl << "t = 0[ms] launch timer-service thread ..." << endl << endl;
 	CTaskTimerService::GetInstance();
-	CTimeFromStart::GetInstance();
 
 	// invoke timer-client #0: goes to sleep @ t=2, requests wakeup after 6sec i.e. @ t=8
 	CTaskTimerClientThread	thread0(0, 2, 6);
