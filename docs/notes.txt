@@ -1,0 +1,7 @@
+date	: 14.12.2019
+version	: 1.0
+Comments: 1st tag
+Notice  :
+(1) Does not handle erronous situation where awaken thread does not signal
+    it resumed run. Such situations can explode the awaken-threads list.
+(2) No dtors implemeted. To be be done.

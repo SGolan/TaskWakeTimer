@@ -6,6 +6,13 @@
 #include "CThreadSafePrintf.h"
 #include "CTimeFromStart.h"
 
+#define VERSION_MAJOR	1
+#define VERSION_MINOR	0
+
+
+#define STRINGIFY(x)	 _STRINGIFY(x)
+#define _STRINGIFY(x)	#x
+
 using namespace std;
 
 std::chrono::system_clock::time_point start;
@@ -58,6 +65,9 @@ private:
 
 int main()
 {
+	
+	cout << "Version: " << STRINGIFY(VERSION_MAJOR) << "." << STRINGIFY(VERSION_MINOR) << endl;
+
 	CTimeFromStart::GetInstance();
 
 	cout << endl << "t = 0[ms] launch timer-service thread ..." << endl << endl;
