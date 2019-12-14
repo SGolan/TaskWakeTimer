@@ -28,16 +28,19 @@ class CTaskTimerService : public ITaskTimerService
 	class CTimerItem
 	{
 	public:
-		CTimerItem(uint32_t a_TimeToWakeSec) : m_WaitingThreadAwaken(false), m_TimeToAwakeSec(a_TimeToWakeSec) {};
+		CTimerItem(uint32_t m_Threadindex, uint32_t a_TimeToWakeSec) : m_Threadindex(m_Threadindex)		,
+																	   m_WaitingThreadAwaken(false)		,
+																	   m_TimeToAwakeSec(a_TimeToWakeSec)	{};
 		uint32_t	m_TimeToAwakeSec;
 		CSemaphore	m_CSemaphore;
 		bool        m_WaitingThreadAwaken;
+		uint32_t	m_Threadindex;
 	};
 
 public:
 
 	static ITaskTimerService*	GetInstance();
-	virtual void				Sleep(uint32_t a_TimeToSleepSec);
+	virtual void				Sleep(uint32_t a_ThreadIndex, uint32_t a_TimeToSleepSec);
 
 	static ITaskTimerService   *m_pCTaskTimerService;
 
@@ -46,6 +49,7 @@ private:
 	CTaskTimerService(const CTaskTimerService &)			 {};
 	CTaskTimerService& operator = (const CTaskTimerService &) {};
 	void	ThreadFunction();
+	void    PrintStatus();
 
 	uint32_t					m_CurrentTimeSec;
 	std::list<CTimerItem *>		m_ListpCTimerItemWaitingThreads;

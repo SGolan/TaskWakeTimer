@@ -28,5 +28,8 @@
     <ClInclude Include="Source\CThreadSafePrintf.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CTimeFromStart.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

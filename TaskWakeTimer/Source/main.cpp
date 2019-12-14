@@ -3,6 +3,7 @@
 #include <windows.h>
 #include "CTaskTimerService.h"
 #include "CThreadSafePrintf.h"
+#include "CTimeFromStart.h"
 
 using namespace std;
 
@@ -27,23 +28,23 @@ public:
 
 private:
 
-	void PrintTime(uint32_t a_ThreadIndex, const char* a_strState)
+	void PrintStatus(uint32_t a_ThreadIndex, const char* a_strState)
 	{
 		std::stringstream cstream;
-		auto time_from_start = chrono::duration_cast<std::chrono::milliseconds>(chrono::system_clock::now() - start).count();
+		uint32_t time_from_start = CTimeFromStart::GetTime();
 		cstream << "t = " << time_from_start << "[ms]: thread #" << a_ThreadIndex << a_strState << endl;
 		CThreadSafePrintf::Print(&cstream);
 	}
 
 	void ThreadFunction()
 	{
-		PrintTime(m_ThreadIndex, " launched");
+		PrintStatus(m_ThreadIndex, " launched");
 		// be idle for m_TimeBeforeSleep seconds
 		Sleep(m_TimeBeforeSleep*1000);
 		// wake up and "request" CTaskTimerServer to wake this thread again after m_TimeToSleep 
-		PrintTime(m_ThreadIndex, " going to sleep");
-		CTaskTimerService::GetInstance()->Sleep(m_TimeToSleep);
-		PrintTime(m_ThreadIndex, " awakes");
+		PrintStatus(m_ThreadIndex, " going to sleep");
+		CTaskTimerService::GetInstance()->Sleep(m_ThreadIndex, m_TimeToSleep);
+		PrintStatus(m_ThreadIndex, " awakes");
 	}
 	uint16_t			m_ThreadIndex;
 	uint32_t			m_TimeBeforeSleep;
@@ -56,10 +57,11 @@ private:
 
 int main()
 {
-	start = std::chrono::system_clock::now();
+	CTimeFromStart::GetInstance();
 
 	cout << endl << "t = 0[ms] launch timer-service thread ..." << endl << endl;
 	CTaskTimerService::GetInstance();
+	CTimeFromStart::GetInstance();
 
 	// invoke timer-client #0: goes to sleep @ t=2, requests wakeup after 6sec i.e. @ t=8
 	CTaskTimerClientThread	thread0(0, 2, 6);
