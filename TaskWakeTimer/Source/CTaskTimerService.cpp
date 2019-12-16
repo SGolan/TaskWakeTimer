@@ -28,44 +28,62 @@ CTaskTimerService::CTaskTimerService() : m_thread([this] { this->ThreadFunction(
 	m_CurrentTimeSec = 0;
 }
 
+void CTaskTimerService::ScanWaitingThreadsSortedList()
+{
+	m_ListCTimerItemMutex.lock();
+
+	// scan sorted-list (from early wake-time to late) : signal threads having expired sleep time and remove their entries
+	list<CTimerItem*>::iterator iter;
+	for (iter = m_ListpCTimerItemWaitingThreads.begin(); iter != m_ListpCTimerItemWaitingThreads.end(); )
+	{
+		if (m_CurrentTimeSec < (*iter)->m_TimeToAwakeSec)
+		{
+			break;
+		}
+
+		// signal waiting thread to awake
+		(*iter)->m_CSemaphore.Signal();
+		// move its CTimerItem from to-be-awaken-list to monitor-thread-to-awake list
+		// TODO: this list should be further managed by timeout and size-limit in order
+		// handle stray threads (not signaled they were awaked) !!!
+		m_ListpCTimerItemAwakenThreads.push_back(*iter);
+		iter = m_ListpCTimerItemWaitingThreads.erase(iter);
+		PrintStatus();
+	}
+
+	m_ListCTimerItemMutex.unlock();
+}
+
+void CTaskTimerService::ScanAwakenThreadsSortedList()
+{
+	// remove CTimerItem of awaken-threads from monitor-thread-awaken list
+	list<CTimerItem*>::iterator iter;
+	for (iter = m_ListpCTimerItemAwakenThreads.begin(); iter != m_ListpCTimerItemAwakenThreads.end(); )
+	{
+		if ((*iter)->m_WaitingThreadAwaken)
+		{
+			iter = m_ListpCTimerItemAwakenThreads.erase(iter);
+			PrintStatus();
+		}
+		else
+		{
+			++iter;
+		}
+	}
+}
+
+
+
 void CTaskTimerService::ThreadFunction()
 {
 
 	for (; ; )
 	{
-		list<CTimerItem*>::iterator iter;
-
-		// scan sorted-list (from early wake-time to late) : signal threads having expired sleep time and remove their entries
-		for(iter = m_ListpCTimerItemWaitingThreads.begin(); iter != m_ListpCTimerItemWaitingThreads.end() ; )
-		{
-			if (m_CurrentTimeSec < (*iter)->m_TimeToAwakeSec)
-			{
-				break;
-			}
-			
-			// signal waiting thread to awake
-			(*iter)->m_CSemaphore.Signal();
-			// move its CTimerItem from to-be-awaken-list to monitor-thread-to-awake list
-			// TODO: this list should be further managed by timeout and size-limit in order
-			// handle stray threads (not signaled they were awaked) !!!
-			m_ListpCTimerItemAwakenThreads.push_back(*iter);
-			iter = m_ListpCTimerItemWaitingThreads.erase(iter);
-			PrintStatus();
-		}
-
-		// remove CTimerItem of awaken-threads from monitor-thread-awaken list
-		for (iter = m_ListpCTimerItemAwakenThreads.begin(); iter != m_ListpCTimerItemAwakenThreads.end() ;  )
-		{
-			if ((*iter)->m_WaitingThreadAwaken)
-			{
-				iter = m_ListpCTimerItemAwakenThreads.erase(iter);
-				PrintStatus();
-			}
-			else
-			{
-				++iter ;
-			}
-		}
+		// scan waiting-threads list and release threads with expired wait-time
+		ScanWaitingThreadsSortedList();
+		
+		// scan awaken-threads list and release resource after thread signaled it resumed its run
+		ScanAwakenThreadsSortedList();		
 
 		// sleep 1sec (simulates IRQ every 1sec)
 		this_thread::sleep_for(chrono::seconds(1));
@@ -76,10 +94,13 @@ void CTaskTimerService::ThreadFunction()
 }
 
 
-void CTaskTimerService::AddToSortedWaitingList(CTimerItem* a_pCTimerItem)
+void CTaskTimerService::AddToWaitingThreadsSortedList(CTimerItem* a_pCTimerItem)
 {
-	// insert item to waiting threads ordered-list
+
 	m_ListCTimerItemMutex.lock();
+
+	// insert item to waiting threads ordered-list
+
 	if (m_ListpCTimerItemWaitingThreads.empty())
 	{
 		// case list is empty 
@@ -104,6 +125,7 @@ void CTaskTimerService::AddToSortedWaitingList(CTimerItem* a_pCTimerItem)
 			m_ListpCTimerItemWaitingThreads.push_back(a_pCTimerItem);
 		}
 	}
+
 	m_ListCTimerItemMutex.unlock();
 }
 
@@ -115,7 +137,7 @@ void CTaskTimerService::Sleep(uint32_t a_ThreadIndex, uint32_t a_TimeToSleepSec)
 	// create timer list-item
 	CTimerItem *pCTimerItem = new CTimerItem(a_ThreadIndex, TimeSToWakeSec);
 
-	AddToSortedWaitingList(pCTimerItem);
+	AddToWaitingThreadsSortedList(pCTimerItem);
 
 	PrintStatus();
 	

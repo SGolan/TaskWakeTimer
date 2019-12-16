@@ -86,7 +86,7 @@ int main()
 
 	this_thread::sleep_for(chrono::seconds(2));
 	cout << endl << "Notice: at this point, both lists handeled by CTaskTimerService (waiting-list \r\n\
-                     \rand awaken-list) should be both empty !" << endl;
+                     \rand awaken-list) should be empty !" << endl;
 
 	cout << endl << "Press ENTER to exit..." << endl;
 	getchar();
