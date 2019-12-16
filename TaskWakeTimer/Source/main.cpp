@@ -6,7 +6,7 @@
 #include "CThreadSafePrintf.h"
 #include "CTimeFromStart.h"
 
-#define VERSION_MAJOR	1
+#define VERSION_MAJOR	2
 #define VERSION_MINOR	0
 
 
